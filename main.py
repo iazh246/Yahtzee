@@ -480,7 +480,6 @@ outer_root.title('~~ Yatzy ~~')
 outer_root.geometry(f"{root_width}x{root_height}")
 outer_root.resizable(False, False)
 
-
 inner_root = ctk.CTkFrame(master=outer_root, corner_radius=0)
 inner_root.pack(padx=0, pady=0, fill='both', expand=True)
 
@@ -539,8 +538,8 @@ top_bar = ctk.CTkFrame(master=inner_root, height=root_height//5, corner_radius=0
 top_bar.pack_propagate(False)
 top_bar.pack(side="top", fill="x")
 
-roll_sort_frame = ctk.CTkFrame(master=top_bar, corner_radius=0, fg_color=secondary_color)
-roll_sort_frame.pack(side="left")
+roll_sort_frame = ctk.CTkFrame(master=top_bar, corner_radius=0, fg_color=secondary_color, width=130)
+roll_sort_frame.pack(side="left", padx=12)
 roll_sort_frame.propagate(False)
 
 roll_button = ctk.CTkButton(master=roll_sort_frame, text="Roll Dice", font=h2_font, fg_color=main_color, corner_radius=0, border_width=0, hover_color=highlight_color, command=roll_dice)
