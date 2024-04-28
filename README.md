@@ -1,0 +1,4 @@
+DEPENDENCIES:
+
+customtkinter
+pillow
