@@ -85,21 +85,28 @@ def stage_2():
 
       
 def cross_category(category):
+    print(c2_player_scorecards)
+    
     if not stage_2_activated:
         players[player_turn]['categories_stage1_used'].add(category)
         player_scorecards[player_turn][category] = '-----'
+        
+        for i, button in enumerate(buttons):
+            button.configure(command=lambda c=i: check_input(categories_stage1[c][0]), fg_color=main_color)
     else:
         players[player_turn]['categories_stage2_used'].add(category)
-        player_scorecards[player_turn][category] = '-----'
-    
-    for i, button in enumerate(buttons):
-        button.configure(command=lambda c=i: check_input(categories_stage1[c][0]), fg_color=main_color)
+        c2_player_scorecards[player_turn][category] = '-----'
+        
+        for i, button in enumerate(c2_buttons):
+            button.configure(command=lambda c=i: check_input(categories_stage2[c][0]), fg_color=main_color)
     
     scorecard_update()
 
     remove_button.configure(state='disabled')
     
     def next_turn():
+        print(f"{players[player_turn]['categories_stage1_used']}\n{players[player_turn]['categories_stage2_used']}")
+        
         if all(len(player['categories_stage2_used']) == len(categories_stage2) for player in players):
             popup_message("Game has ended! All categories in stage 2 have been filled.")
             continue_button_scorecard.destroy()
@@ -120,8 +127,9 @@ def cross_category(category):
     
     scorecard_update()
 
-    for indv_buttons in buttons:
+    for indv_buttons in buttons and c2_buttons:
         indv_buttons.configure(state='disabled')
+
 
 def check_input(category):
     global player_turn, players, score_labels
@@ -211,7 +219,7 @@ def check_input(category):
     continue_button_scorecard.pack(side="top", pady=20)
     scorecard_update()
 
-    for indv_buttons in buttons:
+    for indv_buttons in buttons and c2_buttons:
         indv_buttons.configure(state='disabled')
     
 
@@ -269,16 +277,14 @@ def remove_category():
     if not stage_2_activated:
         for i, button in enumerate(buttons):
             if button.cget('fg_color') == REMOVE_COLOR:
-                button.configure(fg_color=main_color)
-                button.configure(command=lambda c=category: check_input(c))
+                button.configure(command=lambda c=i: check_input(categories_stage1[c][0]), fg_color=main_color)
             else:
                 button.configure(fg_color=REMOVE_COLOR)
                 button.configure(command=lambda c=i: cross_category(categories_stage1[c][0]))
     else:
         for i, button in enumerate(c2_buttons):
             if button.cget('fg_color') == REMOVE_COLOR:
-                button.configure(fg_color=main_color)
-                button.configure(command=lambda c=category: check_input(c))
+                button.configure(command=lambda c=i: check_input(categories_stage2[c][0]), fg_color=main_color)
             else:
                 button.configure(fg_color=REMOVE_COLOR)
                 button.configure(command=lambda c=i: cross_category(categories_stage2[c][0]))
@@ -286,7 +292,7 @@ def remove_category():
 def determine_turn():
     global player_turn, players, turn_indicator, game_started
 
-    valid_players = [index for index, player in enumerate(players) if player is not None]
+    valid_players = [index for index, player in enumerate(players) if player is not None and player['name'] != 'N/A']
 
     if player_turn is None:
         player_turn = valid_players[0]    
@@ -309,8 +315,12 @@ def reset_gamefunc():
 
     scorecard_update()
 
-    for indv_buttons in buttons:
-        indv_buttons.configure(state='normal')
+    if not stage_2_activated:
+        for indv_buttons in buttons:
+            indv_buttons.configure(state='normal')
+    else:
+        for indv_buttons in c2_buttons:
+            indv_buttons.configure(state='normal')
 
     roll_button.configure(state='normal')
     dice.clear()
@@ -331,6 +341,11 @@ def scorecard_update():
         score_labels[category].configure(text=c2_player_scorecards[player_turn][category])
 
 def register_complete():
+    if len(players) < 4:
+        for _ in range(4 - len(players)):
+            players.append({'name': 'N/A', 'score': 0})
+
+
     for _ in range(len(players)):
         player_scorecards.append({
             'Ones': 0,
@@ -578,21 +593,20 @@ remaining_reroll.pack(side="right", expand=True, fill="x", padx=10)
 
 if debug:
     def fill_categories_for_stage_1():
-        player = players[player_turn]  # Assuming you want to fill for the current player
+        player = players[player_turn]
         for category, _ in categories_stage1:
             player['categories_stage1_used'].add(category)
             player_scorecards[player_turn][category] = 6  # Assigning max points for simplification
         popup_message(f"All Stage 1 categories filled for {player['name']}.")
         scorecard_update()
+    
+    def change_player_turn():
+        determine_turn()
 
     def trigger_stage_2_transition():
         stage_2()
 
     def trigger_end_game():
-        # Simulate scores for testing; you may adjust this as necessary
-        for player in players:
-            player['score'] = random.randint(50, 150)
-        popup_message("Simulated end game scores set.")
         determine_winner()  # Assuming this function handles the end game screen
 
     
@@ -602,6 +616,9 @@ if debug:
     fill_stage1_button = ctk.CTkButton(master=debug_frame, text="Fill Stage 1", command=fill_categories_for_stage_1, corner_radius=0, fg_color=dark_accent_color, hover_color=light_accent_color)
     fill_stage1_button.pack(side='left', padx=10, pady=10)
 
+    change_turn_button = ctk.CTkButton(master=debug_frame, text="Change Turn", command=change_player_turn, corner_radius=0, fg_color=dark_accent_color, hover_color=light_accent_color)
+    change_turn_button.pack(side='left', padx=10, pady=10)
+    
     stage_2_button = ctk.CTkButton(master=debug_frame, text="Trigger Stage 2", command=trigger_stage_2_transition, corner_radius=0, fg_color=dark_accent_color, hover_color=light_accent_color)
     stage_2_button.pack(side='left', padx=10, pady=10)
     
@@ -630,11 +647,12 @@ outer_root.mainloop()
 
 # TO FIX NOW
 
+# TODO: fix the category filled popup
+# TODO: fix the play again button in the win screen
 # TODO: finish the code for fundamental game functionality
 
 # TO FIX LATER
 
-# TODO: add version control
 # TODO: bug fixes, better error handling, and more user-friendly fixes
 
 # FUTURE IDEAS
@@ -648,3 +666,12 @@ outer_root.mainloop()
 # TO MAKE AS LAST THING
 
 # TODO: add a settings panel for theme changes and more
+
+
+[{'3K': 0, '4K': 0, 'Full House': 0, 'S.Straight': 0, 'L.Straight': 0, 'Yatzy': 0, 'Chance': 0}, 
+ {'3K': 0, '4K': 0, 'Full House': 0, 'S.Straight': 0, 'L.Straight': 0, 'Yatzy': 0, 'Chance': 0}, 
+ {'3K': 0, '4K': 0, 'Full House': 0, 'S.Straight': 0, 'L.Straight': 0, 'Yatzy': 0, 'Chance': 0}, 
+ {'3K': 0, '4K': 0, 'Full House': 0, 'S.Straight': 0, 'L.Straight': 0, 'Yatzy': 0, 'Chance': 0}]
+
+{'Threes', 'Twos', 'Sixes', 'Fours', 'Fives', 'Ones'}
+set()

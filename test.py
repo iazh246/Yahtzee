@@ -14,15 +14,11 @@ from lists_and_variables import *
  
 winners = sorted(players, key=lambda x: x['score'], reverse=True)
 winners.extend([None] * (4 - len(winners)))
-winner = winners[0] if winners[0] else None
-
 
 player_1 = winners[0]
 player_2 = winners[1]
 player_3 = winners[2]
 player_4 = winners[3]
-
-winner = winners[0]['name']
 
 root_width = 1920 // 2
 root_height = 1080 // 2
@@ -44,7 +40,7 @@ start_x = (root_width - total_width) / 2
 
 bottom_align = (root_height - podium_sizes[2][1]) * 2
 
-ctk.CTkLabel(master=winner_frame, text=f'Congratulations, {winner} has won!', font=h1_cursive_font).place(x=root_width/2, y=50, anchor='n')
+ctk.CTkLabel(master=winner_frame, text=f'Congratulations, {winner_name} has won!', font=h1_cursive_font).place(x=root_width/2, y=50, anchor='n')
 
 for i, size in enumerate(podium_sizes):
     x_position = start_x + i*size[0]
