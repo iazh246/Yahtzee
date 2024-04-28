@@ -1,4 +1,3 @@
-
 root_width = 1920 // 2
 root_height = 1080 // 2
 

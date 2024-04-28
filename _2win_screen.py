@@ -1,10 +1,10 @@
 import customtkinter as ctk
 from customtkinter import *
 
-from fonts_and_colors import *
-from lists_and_variables import *
+from _0fonts_and_colors import *
+from _0lists_and_variables import *
 
-def determine_winner():
+def winner_screen():
     if len(players) < 4:
         for _ in range(4 - len(players)):
             players.append({'name': 'N/A', 'score': 0})
@@ -67,8 +67,5 @@ def determine_winner():
 
         label_above = ctk.CTkLabel(master=winner_frame, text=player_label[i], font=standard_font)
         label_above.place(x=x_position + size[0]/2, y=bottom_align - size[1] - 20, anchor='s')
-
-    winner_continue = ctk.CTkButton(master=winner_frame, text='Play Again', font=standard_font, corner_radius=0, fg_color=light_accent_color, hover_color=dark_accent_color)
-    winner_continue.place(x=root_width-10, y=root_height-10, anchor='se')
 
     winner_root.mainloop()

@@ -11,13 +11,16 @@ from PIL import Image, ImageTk
 
 import random
 
-from fonts_and_colors import *
-from lists_and_variables import *
+from _0fonts_and_colors import *
+from _0lists_and_variables import *
 
-from win_screen import determine_winner
-
+from _2win_screen import winner_screen
 
 # ---------------------------- functions ------------------------------- #
+
+def determine_winner():
+    outer_root.destroy()
+    winner_screen()
 
 def popup_message(message):
     try:
@@ -57,7 +60,7 @@ def popup_message(message):
         ok_button.pack(expand=True, pady=10)
 
         def hide_error(event):
-            error_root.destroy()
+            error_root.quit
         
         error_root.mainloop()
 
@@ -80,21 +83,29 @@ def stage_2():
     
 def cross_category(category):    
     if not stage_2_activated:
-        players[player_turn]['categories_stage1_used'].add(category)
-        player_scorecards[player_turn][category] = '-----'
-        
-        for i, button in enumerate(buttons):
-            button.configure(command=lambda c=i: check_input(categories_stage1[c][0]), fg_color=main_color)
-    else:
-        players[player_turn]['categories_stage2_used'].add(category)
-        c2_player_scorecards[player_turn][category] = '-----'
-        
-        for i, button in enumerate(c2_buttons):
-            button.configure(command=lambda c=i: check_input(categories_stage2[c][0]), fg_color=main_color)
-    
-    scorecard_update()
+        if category not in players[player_turn]['categories_stage1_used']:
+            players[player_turn]['categories_stage1_used'].add(category)
+            player_scorecards[player_turn][category] = '-----'
 
-    remove_button.configure(state='disabled')
+            for i, button in enumerate(buttons):
+                button.configure(command=lambda c=i: check_input(categories_stage1[c][0]), fg_color=main_color)
+    
+                scorecard_update()
+                remove_button.configure(state='disabled')
+        else:
+            popup_message(f"Category '{category}' has already been used.")
+    else:
+        if category not in players[player_turn]['categories_stage2_used']:
+            players[player_turn]['categories_stage2_used'].add(category)
+            c2_player_scorecards[player_turn][category] = '-----'
+
+            for i, button in enumerate(c2_buttons):
+                button.configure(command=lambda c=i: check_input(categories_stage2[c][0]), fg_color=main_color)
+                
+                scorecard_update()
+                remove_button.configure(state='disabled')
+        else:
+            popup_message(f"Category '{category}' has already been used.")
     
     def next_turn():
         if not stage_2_activated:
@@ -130,7 +141,6 @@ def cross_category(category):
 
     for indv_buttons in buttons and c2_buttons:
         indv_buttons.configure(state='disabled')
-
 
 def check_input(category):
     global player_turn, players, score_labels
@@ -233,7 +243,6 @@ def check_input(category):
     for indv_buttons in buttons and c2_buttons:
         indv_buttons.configure(state='disabled')
     
-
 #independent of stages
 
 def sort_dice():
@@ -499,6 +508,8 @@ turn_indicator.pack(side="top", fill="x")
 scorecard = ctk.CTkFrame(master=side_bar, corner_radius=0, fg_color=main_color)
 scorecard.pack(anchor='n', expand=True)
 
+# ---------------------------- scorecard area ------------------------------- #
+
 ctk.CTkLabel(master=scorecard, text="Category", font=small_font_bold).grid(row=0, column=0, padx=10, sticky="w")
 ctk.CTkLabel(master=scorecard, text="Max Score", font=small_font_bold).grid(row=0, column=1, padx=10)
 ctk.CTkLabel(master=scorecard, text="Your Score", font=small_font_bold).grid(row=0, column=2, padx=10)
@@ -539,7 +550,9 @@ for i, (category, max_score) in enumerate(categories_stage2, start=len(categorie
     c2_button.configure(state='disabled')
     
     c2_buttons.append(c2_button)
-    
+
+# ---------------------------- main frame continuation ------------------------------- #
+
 top_bar = ctk.CTkFrame(master=inner_root, height=root_height//5, corner_radius=0, fg_color=secondary_color)
 top_bar.pack_propagate(False)
 top_bar.pack(side="top", fill="x")
@@ -556,12 +569,16 @@ sort_button = ctk.CTkButton(master=roll_sort_frame, text="Sort Dice", font=stand
 sort_button.pack(side='bottom', pady=10)
 sort_button.propagate(False)
 
+# ---------------------------- dice images initilizing ------------------------------- #
+
 images = [ImageTk.PhotoImage(Image.open(f"./dice_images/dice{i}.png").resize((root_height//6, root_height//6))) for i in range(1, 7)]
 
 for _ in range(5):
     label = Label(top_bar, bg=secondary_color, borderwidth=0)
     label.pack(side='left', fill="both", expand=True)
     dice_labels.append(label)
+
+# ---------------------------- main frame continuation ------------------------------- #
 
 under_bar = ctk.CTkFrame(master=inner_root, height=root_height/5, corner_radius=0, fg_color=transparent_color)
 under_bar.pack_propagate(False)
@@ -573,6 +590,8 @@ reroll_button.configure(command=reroll_dice)
 
 input_box = ctk.CTkEntry(master=under_bar, font=standard_font, fg_color=main_color, corner_radius=0, border_width=0)
 input_box.pack(side="left", expand=True, fill="x", padx=10)
+
+# ---------------------------- info box function ------------------------------- #
 
 input_info_box = ctk.CTkLabel(master=under_bar, text=" info ", font=standard_font, fg_color=main_color, corner_radius=0)
 input_info_box.pack(side="left", expand=True)
@@ -593,8 +612,12 @@ def input_hide_info(event):
 input_info_box.bind("<Enter>", input_show_info)
 input_info_box.bind("<Leave>", input_hide_info)
 
+# ---------------------------- main frame continuation ------------------------------- #
+
 remaining_reroll = ctk.CTkLabel(master=under_bar, text="Remaining Rerolls: 3", font=standard_font, fg_color=main_color, corner_radius=0)
 remaining_reroll.pack(side="right", expand=True, fill="x", padx=10)
+
+# ---------------------------- debug ------------------------------- #
 
 if debug:
     def fill_categories_for_stage_1():
@@ -630,33 +653,15 @@ if debug:
     end_game_button = ctk.CTkButton(master=debug_frame, text="Trigger End Game", command=trigger_end_game, corner_radius=0, fg_color=dark_accent_color, hover_color=light_accent_color)
     end_game_button.pack(side='left', padx=10, pady=10)
   
-
+# ---------------------------- mainloop ------------------------------- #
 
 determine_turn()
 game_started = True
-outer_root.mainloop()
+outer_root.mainloop()   
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+# ---------------------------- TODO ------------------------------- #
 
 # TO FIX NOW
-
-# TODO: fix the category filled popup
-# TODO: fix the play again button in the win screen
-# TODO: finish the code for fundamental game functionality
-
-# TO FIX LATER
 
 # TODO: bug fixes, better error handling, and more user-friendly fixes
 
@@ -671,12 +676,3 @@ outer_root.mainloop()
 # TO MAKE AS LAST THING
 
 # TODO: add a settings panel for theme changes and more
-
-
-[{'3K': 0, '4K': 0, 'Full House': 0, 'S.Straight': 0, 'L.Straight': 0, 'Yatzy': 0, 'Chance': 0}, 
- {'3K': 0, '4K': 0, 'Full House': 0, 'S.Straight': 0, 'L.Straight': 0, 'Yatzy': 0, 'Chance': 0}, 
- {'3K': 0, '4K': 0, 'Full House': 0, 'S.Straight': 0, 'L.Straight': 0, 'Yatzy': 0, 'Chance': 0}, 
- {'3K': 0, '4K': 0, 'Full House': 0, 'S.Straight': 0, 'L.Straight': 0, 'Yatzy': 0, 'Chance': 0}]
-
-{'Threes', 'Twos', 'Sixes', 'Fours', 'Fives', 'Ones'}
-set()
