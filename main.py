@@ -61,8 +61,6 @@ def popup_message(message):
         
         error_root.mainloop()
 
-#stage_2
-
 def stage_2():
     global stage_2_activated
     stage_2_activated = True
@@ -79,14 +77,8 @@ def stage_2():
     
     for i in range(len(c2_buttons)):
         c2_buttons[i].configure(state='normal')
-
-#stage1
-
-
-      
-def cross_category(category):
-    print(c2_player_scorecards)
     
+def cross_category(category):    
     if not stage_2_activated:
         players[player_turn]['categories_stage1_used'].add(category)
         player_scorecards[player_turn][category] = '-----'
@@ -105,24 +97,33 @@ def cross_category(category):
     remove_button.configure(state='disabled')
     
     def next_turn():
-        print(f"{players[player_turn]['categories_stage1_used']}\n{players[player_turn]['categories_stage2_used']}")
-        
-        if all(len(player['categories_stage2_used']) == len(categories_stage2) for player in players):
-            popup_message("Game has ended! All categories in stage 2 have been filled.")
-            continue_button_scorecard.destroy()
-            determine_winner()  
-        elif all(len(player['categories_stage1_used']) == len(categories_stage1) for player in players):
-            popup_message("Halftime! All of stage 1 have been filled, proceeding to stage 2.")
-            continue_button_scorecard.destroy()
-            stage_2()
+        if not stage_2_activated:
+            if all(len(player['categories_stage2_used']) == len(categories_stage2) for player in players):
+                popup_message("Game has ended! All categories in stage 2 have been filled.")
+                continue_button_scorecard.destroy()
+                determine_winner()  
+            elif all(len(player['categories_stage1_used']) == len(categories_stage1) for player in players):
+                popup_message("Halftime! All of stage 1 have been filled, proceeding to stage 2.")
+                continue_button_scorecard.destroy()
+                stage_2()
+            else:
+                popup_message(f"{players[player_turn]['name']} removed the category '{category}'.\nIt is now the next players turn.")
+                continue_button_scorecard.destroy()
+                remove_button.configure(state='normal')
+                determine_turn()
         else:
-            popup_message(f"{players[player_turn]['name']} removed the category '{category}'.\nIt is now the next players turn.")
-            continue_button_scorecard.destroy()
-            remove_button.configure(state='normal')
-            determine_turn()
+            if all(len(player['categories_stage2_used']) == len(categories_stage2) for player in players):
+                popup_message("Game has ended! All categories in stage 2 have been filled.")
+                continue_button_scorecard.destroy()
+                determine_winner()  
+            else:
+                popup_message(f"{players[player_turn]['name']} removed the category '{category}'.\nIt is now the next players turn.")
+                continue_button_scorecard.destroy()
+                remove_button.configure(state='normal')
+                determine_turn()
 
     continue_button_scorecard = ctk.CTkButton(master=side_bar, text="Pass Turn", font=standard_font, fg_color=dark_accent_color, corner_radius=0, hover_color=light_accent_color, command=next_turn)
-    continue_button_scorecard.pack(side="top")
+    continue_button_scorecard.pack(side="top", pady=20)
     continue_button_scorecard.propagate(False)
     
     scorecard_update()
@@ -202,18 +203,28 @@ def check_input(category):
         c2_player_scorecards[player_turn][category] = score
 
     def next_turn():
-        if all(len(player['categories_stage2_used']) == len(categories_stage2) for player in players):
-            popup_message("Game has ended! All categories in stage 2 have been filled.")
-            continue_button_scorecard.destroy()
-            determine_winner()
-        elif all(len(player['categories_stage1_used']) == len(categories_stage1) for player in players):
-            popup_message("Halftime! All of stage 1 have been filled, proceeding to stage 2.")
-            continue_button_scorecard.destroy()
-            stage_2()
+        if not stage_2_activated:
+            if all(len(player['categories_stage2_used']) == len(categories_stage2) for player in players):
+                popup_message("Game has ended! All categories in stage 2 have been filled.")
+                continue_button_scorecard.destroy()
+                determine_winner()
+            elif all(len(player['categories_stage1_used']) == len(categories_stage1) for player in players):
+                popup_message("Halftime! All of stage 1 have been filled, proceeding to stage 2.")
+                continue_button_scorecard.destroy()
+                stage_2()
+            else:
+                popup_message(f"{players[player_turn]['name']} scored {score} points in the {category} category!\nIt is now the next players turn.")
+                continue_button_scorecard.destroy()
+                determine_turn()
         else:
-            popup_message(f"{players[player_turn]['name']} scored {score} points in the {category} category!\nIt is now the next players turn.")
-            continue_button_scorecard.destroy()
-            determine_turn()
+            if all(len(player['categories_stage2_used']) == len(categories_stage2) for player in players):
+                popup_message("Game has ended! All categories in stage 2 have been filled.")
+                continue_button_scorecard.destroy()
+                determine_winner()
+            else:
+                popup_message(f"{players[player_turn]['name']} scored {score} points in the {category} category!\nIt is now the next players turn.")
+                continue_button_scorecard.destroy()
+                determine_turn()
 
     continue_button_scorecard = ctk.CTkButton(master=side_bar, text="Pass Turn", font=standard_font, fg_color=dark_accent_color, corner_radius=0, hover_color=light_accent_color, command=next_turn)
     continue_button_scorecard.pack(side="top", pady=20)
@@ -292,7 +303,7 @@ def remove_category():
 def determine_turn():
     global player_turn, players, turn_indicator, game_started
 
-    valid_players = [index for index, player in enumerate(players) if player is not None and player['name'] != 'N/A']
+    valid_players = [index for index, player in enumerate(players) if player is not None]
 
     if player_turn is None:
         player_turn = valid_players[0]    
@@ -341,11 +352,6 @@ def scorecard_update():
         score_labels[category].configure(text=c2_player_scorecards[player_turn][category])
 
 def register_complete():
-    if len(players) < 4:
-        for _ in range(4 - len(players)):
-            players.append({'name': 'N/A', 'score': 0})
-
-
     for _ in range(len(players)):
         player_scorecards.append({
             'Ones': 0,
@@ -493,10 +499,10 @@ turn_indicator.pack(side="top", fill="x")
 scorecard = ctk.CTkFrame(master=side_bar, corner_radius=0, fg_color=main_color)
 scorecard.pack(anchor='n', expand=True)
 
-ctk.CTkLabel(master=scorecard, text="Category").grid(row=0, column=0, padx=10, sticky="w")
-ctk.CTkLabel(master=scorecard, text="Max Score").grid(row=0, column=1, padx=10)
-ctk.CTkLabel(master=scorecard, text="Your Score").grid(row=0, column=2, padx=10)
-remove_button = ctk.CTkButton(master=scorecard, text="REMOVE", width=10, fg_color=main_color, corner_radius=0, border_width=0, hover_color=highlight_color, command=remove_category)
+ctk.CTkLabel(master=scorecard, text="Category", font=small_font_bold).grid(row=0, column=0, padx=10, sticky="w")
+ctk.CTkLabel(master=scorecard, text="Max Score", font=small_font_bold).grid(row=0, column=1, padx=10)
+ctk.CTkLabel(master=scorecard, text="Your Score", font=small_font_bold).grid(row=0, column=2, padx=10)
+remove_button = ctk.CTkButton(master=scorecard, text="REMOVE", width=10, fg_color=main_color, font=small_font_bold, corner_radius=0, border_width=0, hover_color=highlight_color, command=remove_category)
 remove_button.grid(row=0, column=3, padx=10)
 
 # ---------------------------- categories_stage1 ------------------------------- #
@@ -505,7 +511,7 @@ for i, (category, max_score) in enumerate(categories_stage1, start=1):
     ctk.CTkLabel(master=scorecard, text=category).grid(row=i, column=0, sticky="w", padx=10)
     ctk.CTkLabel(master=scorecard, text=max_score).grid(row=i, column=1, padx=10)
     
-    score_label = ctk.CTkLabel(master=scorecard, text="0")
+    score_label = ctk.CTkLabel(master=scorecard, text="0", font=standard_font)
     score_label.grid(row=i, column=2, padx=10)
     score_labels[category] = score_label
 
@@ -524,7 +530,7 @@ for i, (category, max_score) in enumerate(categories_stage2, start=len(categorie
     ctk.CTkLabel(master=scorecard, text=category).grid(row=i, column=0, sticky="w", padx=10)
     ctk.CTkLabel(master=scorecard, text=max_score).grid(row=i, column=1, padx=10)
     
-    score_label = ctk.CTkLabel(master=scorecard, text="0")
+    score_label = ctk.CTkLabel(master=scorecard, text="0", font=standard_font)
     score_label.grid(row=i, column=2, padx=10)
     score_labels[category] = score_label
 

@@ -5,6 +5,10 @@ from fonts_and_colors import *
 from lists_and_variables import *
 
 def determine_winner():
+    if len(players) < 4:
+        for _ in range(4 - len(players)):
+            players.append({'name': 'N/A', 'score': 0})
+    
     winners = sorted(players, key=lambda x: x['score'], reverse=True)
     winners.extend([None] * (4 - len(winners)))
     

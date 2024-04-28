@@ -1,4 +1,5 @@
 small_font = ("Montserrat", 12)
+small_font_bold = ("Montserrat", 12, "bold")
 standard_font = ("Montserrat", 20)
 h2_font = ("Montserrat", 32)
 h1_font = ("Montserrat", 48)
