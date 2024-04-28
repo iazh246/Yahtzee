@@ -10,16 +10,8 @@ from PIL import Image, ImageTk
 import random
 
 from fonts_and_colors import *
-
-players = [
-    {"name": "Alice", "score": random.randint(0, 100)},
-    {"name": "Bob", "score": random.randint(0, 100)},
-    {"name": "Charlie", "score": random.randint(0, 100)},
-    {"name": "Dana", "score": random.randint(0, 100)}
-]
-
-
-    
+from lists_and_variables import *
+ 
 winners = sorted(players, key=lambda x: x['score'], reverse=True)
 winners.extend([None] * (4 - len(winners)))
 winner = winners[0] if winners[0] else None
@@ -60,8 +52,14 @@ for i, size in enumerate(podium_sizes):
     podium.place(x=x_position, y=bottom_align, anchor='sw')
 
 
-player_label = [f"{player_3['name']}\n(score: {player_3['score']})", f"{player_2['name']}\n(score: {player_2['score']})", f"{player_1['name']}\n(score: {player_1['score']})", f"{player_4['name']}\n(score: {player_4['score']})"]  # Player labels corresponding to their podium place
+player_label = [
+    f"{player_3['name']}\nscore: {player_3['score']}",
+    f"{player_2['name']}\nscore: {player_2['score']}",
+    f"{player_1['name']}\nscore: {player_1['score']}",
+    f"{player_4['name']}\nscore: {player_4['score']}"
+]  # Player labels corresponding to their podium place
 place_labels = ['3rd', '2nd', '1st', '4th']
+
 
 for i, (size, label) in enumerate(zip(podium_sizes, place_labels)):
     x_position = start_x + i*size[0]

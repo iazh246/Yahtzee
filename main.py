@@ -9,64 +9,12 @@ from tkinter import *
 
 from PIL import Image, ImageTk
 
-import random, time, threading
+import random
 
 from fonts_and_colors import *
+from lists_and_variables import *
 
-
-# ---------------------------- variables ------------------------------- #
-
-root_width = 1920 // 2
-root_height = 1080 // 2
-
-dice =[]
-dice_labels = []
-
-players = []
-player_scorecards = []
-c2_player_scorecards = []
-
-player_turn = None
-rerolled_dice = 3
-
-game_started = False
-game_ended = False
-
-score_labels = {}
-categories_stage1 = [
-    ("Ones", 5), 
-    ("Twos", 10), 
-    ("Threes", 15), 
-    ("Fours", 20), 
-    ("Fives", 25), 
-    ("Sixes", 30)
-]
-
-categories_stage2 = [
-    ("3K", 30),
-    ("4K", 40),
-    ("Full House", 25),
-    ("S.Straight", 30),
-    ("L.Straight", 40),
-    ("Yatzy", 50),
-    ("Chance", 30)
-]
-
-buttons = []
-c2_buttons = []
-
-stage_2_activated = False
-
-# ---------------------------- debug ------------------------------- #
-
-debug = True
-
-# ------------------------------------------------------------------ #
-
-
-
-
-
+from win_screen import determine_winner
 
 
 # ---------------------------- functions ------------------------------- #
@@ -113,69 +61,7 @@ def popup_message(message):
         
         error_root.mainloop()
 
-def determine_winner():
-    global root_width, root_height
-    
-    winners = sorted(players, key=lambda x: x['score'], reverse=True)
-    winners.extend([None] * (4 - len(winners)))
-    winner = winners[0] if winners[0] else None
-
-    
-    player_1 = winners[0]
-    player_2 = winners[1]
-    player_3 = winners[2]
-    player_4 = winners[3]
-
-    winner = winners[0]['name']
-
-    root_width = 1920 // 2
-    root_height = 1080 // 2
-
-    winner_root = ctk.CTk()
-    winner_root.title('~~ Yatzy | Winner ~~')
-    winner_root.geometry(f"{root_width}x{root_height}")
-    winner_root.resizable(False, False)
-
-    winner_frame = ctk.CTkFrame(winner_root, corner_radius=0, fg_color=main_color)
-    winner_frame.pack(fill="both", expand=True)
-
-    colors = ['#404040', '#454545', '#505050', '#555555']
-
-    podium_sizes = [(100, 180), (100, 240), (100, 300), (100, 120)]
-
-    total_width = sum(size[0] for size in podium_sizes)
-    start_x = (root_width - total_width) / 2
-
-    bottom_align = (root_height - podium_sizes[2][1]) * 2
-
-    ctk.CTkLabel(master=winner_frame, text=f'Congratulations, {winner} has won!', font=h1_cursive_font).place(x=root_width/2, y=50, anchor='n')
-
-    for i, size in enumerate(podium_sizes):
-        x_position = start_x + i*size[0]
-        podium = ctk.CTkFrame(master=winner_frame, width=size[0], height=size[1], corner_radius=0, fg_color=colors[3 - i])
-        podium.place(x=x_position, y=bottom_align, anchor='sw')
-
-
-    player_label = [f"{player_3['name']}\n(score: {player_3['score']})", f"{player_2['name']}\n(score: {player_2['score']})", f"{player_1['name']}\n(score: {player_1['score']})", f"{player_4['name']}\n(score: {player_4['score']})"]  # Player labels corresponding to their podium place
-    place_labels = ['3rd', '2nd', '1st', '4th']
-
-    for i, (size, label) in enumerate(zip(podium_sizes, place_labels)):
-        x_position = start_x + i*size[0]
-    
-        podium = ctk.CTkFrame(master=winner_frame, width=size[0], height=size[1], corner_radius=0, fg_color=colors[3 - i])
-        podium.place(x=x_position, y=bottom_align, anchor='sw')
-
-        label_below = ctk.CTkLabel(master=winner_frame, text=label, font=standard_font)
-        label_below.place(x=x_position + size[0]/2, y=bottom_align + 40, anchor='s')
-
-        label_above = ctk.CTkLabel(master=winner_frame, text=player_label[i], font=standard_font)
-        label_above.place(x=x_position + size[0]/2, y=bottom_align - size[1] - 20, anchor='s')
-  
-    winner_continue = ctk.CTkButton(master=winner_frame, text='Play Again', font=standard_font, corner_radius=0, fg_color=light_accent_color, hover_color=dark_accent_color)
-    winner_continue.place(x=root_width-10, y=root_height-10, anchor='se')
-    
-    winner_root.mainloop()
-
+#stage_2
 
 def stage_2():
     global stage_2_activated
@@ -194,25 +80,10 @@ def stage_2():
     for i in range(len(c2_buttons)):
         c2_buttons[i].configure(state='normal')
 
+#stage1
 
-def remove_category():
-    if not stage_2_activated:
-        for i, button in enumerate(buttons):
-            if button.cget('fg_color') == REMOVE_COLOR:
-                button.configure(fg_color=main_color)
-                button.configure(command=lambda c=category: check_input(c))
-            else:
-                button.configure(fg_color=REMOVE_COLOR)
-                button.configure(command=lambda c=i: cross_category(categories_stage1[c][0]))
-    else:
-        for i, button in enumerate(c2_buttons):
-            if button.cget('fg_color') == REMOVE_COLOR:
-                button.configure(fg_color=main_color)
-                button.configure(command=lambda c=category: check_input(c))
-            else:
-                button.configure(fg_color=REMOVE_COLOR)
-                button.configure(command=lambda c=i: cross_category(categories_stage2[c][0]))
-        
+
+      
 def cross_category(category):
     if not stage_2_activated:
         players[player_turn]['categories_stage1_used'].add(category)
@@ -254,7 +125,7 @@ def cross_category(category):
 
 def check_input(category):
     global player_turn, players, score_labels
-    
+
     category_to_number = {
         "Ones": 1,
         "Twos": 2,
@@ -296,7 +167,7 @@ def check_input(category):
             "S.Straight": lambda dice: any(sorted(dice) == list(range(start, start + 4)) for start in range(1, 7) if start + 3 <= 6),
             "L.Straight": lambda dice: any(sorted(dice) == list(range(start, start + 5)) for start in range(1, 7) if start + 4 <= 6),
             "Yatzy": lambda dice: dice.count(dice[0]) == 5,
-            "Chance": True
+            "Chance": lambda dice: True
         }
         
         if not conditions[category](dice):
@@ -344,6 +215,7 @@ def check_input(category):
         indv_buttons.configure(state='disabled')
     
 
+#independent of stages
 
 def sort_dice():
     global dice, dice_labels
@@ -393,9 +265,23 @@ def reroll_dice():
     if rerolled_dice == 0:
         reroll_button.configure(state='disabled') 
 
-
-
-
+def remove_category():
+    if not stage_2_activated:
+        for i, button in enumerate(buttons):
+            if button.cget('fg_color') == REMOVE_COLOR:
+                button.configure(fg_color=main_color)
+                button.configure(command=lambda c=category: check_input(c))
+            else:
+                button.configure(fg_color=REMOVE_COLOR)
+                button.configure(command=lambda c=i: cross_category(categories_stage1[c][0]))
+    else:
+        for i, button in enumerate(c2_buttons):
+            if button.cget('fg_color') == REMOVE_COLOR:
+                button.configure(fg_color=main_color)
+                button.configure(command=lambda c=category: check_input(c))
+            else:
+                button.configure(fg_color=REMOVE_COLOR)
+                button.configure(command=lambda c=i: cross_category(categories_stage2[c][0]))
 
 def determine_turn():
     global player_turn, players, turn_indicator, game_started
@@ -443,10 +329,6 @@ def scorecard_update():
         score_labels[category].configure(text=player_scorecards[player_turn][category])
     for category, _ in categories_stage2:
         score_labels[category].configure(text=c2_player_scorecards[player_turn][category])
-
-
-
-
 
 def register_complete():
     for _ in range(len(players)):
@@ -506,6 +388,7 @@ def remove_player(player):
             add_button.configure(state='normal')
 
 # ---------------------------------------------------------------------- #
+
 
 
 
@@ -653,7 +536,7 @@ sort_button = ctk.CTkButton(master=roll_sort_frame, text="Sort Dice", font=stand
 sort_button.pack(side='bottom', pady=10)
 sort_button.propagate(False)
 
-images = [ImageTk.PhotoImage(Image.open(f"Yahtzee/dice_images/dice{i}.png").resize((root_height//6, root_height//6))) for i in range(1, 7)]
+images = [ImageTk.PhotoImage(Image.open(f"./dice_images/dice{i}.png").resize((root_height//6, root_height//6))) for i in range(1, 7)]
 
 for _ in range(5):
     label = Label(top_bar, bg=secondary_color, borderwidth=0)
@@ -693,9 +576,57 @@ input_info_box.bind("<Leave>", input_hide_info)
 remaining_reroll = ctk.CTkLabel(master=under_bar, text="Remaining Rerolls: 3", font=standard_font, fg_color=main_color, corner_radius=0)
 remaining_reroll.pack(side="right", expand=True, fill="x", padx=10)
 
+if debug:
+    def fill_categories_for_stage_1():
+        player = players[player_turn]  # Assuming you want to fill for the current player
+        for category, _ in categories_stage1:
+            player['categories_stage1_used'].add(category)
+            player_scorecards[player_turn][category] = 6  # Assigning max points for simplification
+        popup_message(f"All Stage 1 categories filled for {player['name']}.")
+        scorecard_update()
+
+    def trigger_stage_2_transition():
+        stage_2()
+
+    def trigger_end_game():
+        # Simulate scores for testing; you may adjust this as necessary
+        for player in players:
+            player['score'] = random.randint(50, 150)
+        popup_message("Simulated end game scores set.")
+        determine_winner()  # Assuming this function handles the end game screen
+
+    
+    debug_frame = ctk.CTkFrame(master=inner_root, corner_radius=0, fg_color='grey')
+    debug_frame.pack(side='bottom', fill='x')
+
+    fill_stage1_button = ctk.CTkButton(master=debug_frame, text="Fill Stage 1", command=fill_categories_for_stage_1, corner_radius=0, fg_color=dark_accent_color, hover_color=light_accent_color)
+    fill_stage1_button.pack(side='left', padx=10, pady=10)
+
+    stage_2_button = ctk.CTkButton(master=debug_frame, text="Trigger Stage 2", command=trigger_stage_2_transition, corner_radius=0, fg_color=dark_accent_color, hover_color=light_accent_color)
+    stage_2_button.pack(side='left', padx=10, pady=10)
+    
+    end_game_button = ctk.CTkButton(master=debug_frame, text="Trigger End Game", command=trigger_end_game, corner_radius=0, fg_color=dark_accent_color, hover_color=light_accent_color)
+    end_game_button.pack(side='left', padx=10, pady=10)
+  
+
+
 determine_turn()
 game_started = True
 outer_root.mainloop()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # TO FIX NOW
 
