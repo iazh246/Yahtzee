@@ -1,3 +1,5 @@
+import pygame
+
 root_width = 1920 // 2
 root_height = 1080 // 2
 
@@ -39,6 +41,8 @@ rerolled_dice = 3
 game_started = False
 stage_2_activated = False
 game_ended = False
+
+dice_roll_sound = pygame.mixer.Sound("sound_effects/dice_roll_sound.mp3")
 
 
 
