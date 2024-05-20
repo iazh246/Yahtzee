@@ -43,7 +43,8 @@ stage_2_activated = False
 game_ended = False
 
 dice_roll_sound = pygame.mixer.Sound("sound_effects/dice_roll_sound.mp3")
-
+complete_sound = pygame.mixer.Sound("sound_effects/complete_sound.mp3")
+click_sound = pygame.mixer.Sound("sound_effects/click_sound.mp3")
 
 
 
