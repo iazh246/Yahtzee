@@ -98,6 +98,7 @@ def cross_category(category):
                 remove_button.configure(state='disabled')
         else:
             popup_message(f"Category '{category}' has already been used.")
+            return
     else:
         if category not in players[player_turn]['categories_stage2_used']:
             players[player_turn]['categories_stage2_used'].add(category)
@@ -110,7 +111,8 @@ def cross_category(category):
                 remove_button.configure(state='disabled')
         else:
             popup_message(f"Category '{category}' has already been used.")
-    
+            return
+        
     def next_turn():
         complete_sound.play()
         
@@ -876,9 +878,9 @@ if not game_started:
 # TODO: bug fixes, better error handling, and more user-friendly fixes
 
 # FUTURE IDEAS
-# TODO: add a function to play against the computer
+# TODO: add a function to play against a computer
 # TODO: add a function to play online with friends (socket)
-# TODO: add a function to save and load the game state
+# TODO: add a function to save and load
 
 # TO MAKE AS LAST THING
 # TODO: add a settings panel for theme changes and more
