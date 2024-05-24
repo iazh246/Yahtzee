@@ -2,3 +2,4 @@ DEPENDENCIES:
 
 customtkinter
 pillow
+pygame
